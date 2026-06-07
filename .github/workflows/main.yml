@@ -1,4 +1,4 @@
-name: Build Modded APK
+name: Build Modded APK & Extract Source
 
 on:
   push:
@@ -27,20 +27,28 @@ jobs:
       - name: Decompile APK
         run: |
           java -jar apktool.jar d gamehub.apk -o decoded_apk
-          
+
+      - name: Extract Manifest and Smali for Analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: Source-Code-Analysis
+          path: |
+            decoded_apk/AndroidManifest.xml
+            decoded_apk/smali/
+
       - name: Inject Mod Menu HTML
         run: |
           mkdir -p decoded_apk/assets/
           cp mod_menu.html decoded_apk/assets/
-          
+
       - name: Recompile APK
         run: |
           java -jar apktool.jar b decoded_apk -o modded_unsigned.apk
-          
+
       - name: Sign Modded APK
         run: |
           java -jar signer.jar -a modded_unsigned.apk -o final_apk_dir
-          
+
       - name: Upload Final APK Artifact
         uses: actions/upload-artifact@v4
         with:
